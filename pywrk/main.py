@@ -1,6 +1,7 @@
 import asyncio
 import async_timeout
 from collections import deque, defaultdict
+from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Pool
 import typing
 
@@ -41,19 +42,17 @@ def main(url, works, headers, timeout, duration, connections, method):
     duration = parse_duration(duration)
     if headers:
         headers = parse_header(headers)
-    # data += run(url, headers, connection_num[0], timeout, duration, method)
-    with Pool(works) as p:
+    with ProcessPoolExecutor(max_workers=works) as exc:
         for i in range(works):
-            result[i] = p.apply_async(run,
-                                      args=[
-                                          i, url, headers, connection_num[i],
-                                          timeout, duration, method
-                                      ])
-        p.close()
-        p.join()
-        for _, v in result.items():
-            data += v.get()
+            result[i] = exc.submit(run, i, url, headers, connection_num[i],
+                                   timeout, duration, method)
+    for _, v in result.items():
+        data += v.result()
     print(count_req(data))
+
+
+def test(i):
+    print(i)
 
 
 def count_req(data: deque):
@@ -64,6 +63,7 @@ def count_req(data: deque):
 
 
 def run(num, url, headers, connections, timeout, duration, method):
+    # print(id(asyncio.new_event_loop()))
     return asyncio.run(
         async_run(num, url, headers, timeout, connections, duration, method))
 

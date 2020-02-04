@@ -1,0 +1,9 @@
+{
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "yapf",
+    "python.linting.flake8Path": "/home/lvcong/.cache/pypoetry/virtualenvs/pywrk-4l02oPEL-py3.8/bin/flake8",
+    "python.pythonPath": "/home/lvcong/.cache/pypoetry/virtualenvs/py-wrk-4l02oPEL-py3.8/bin/python",
+    "python.linting.pylintPath": "/home/lvcong/.cache/pypoetry/virtualenvs/pywrk-4l02oPEL-py3.8/bin/pylint",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+}

@@ -6,10 +6,22 @@ authors = ["CoCong <cong.lv.yx@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+httpx = "^0.11.1"
+click = "^7.0"
+async-timeout = "^3.0.1"
+uvloop = "^0.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+ipython = "^7.12.0"
+flake8 = "^3.7.9"
+pylint = "^2.4.4"
+rope = "^0.16.0"
+yapf = "^0.29.0"
 
+[tool.poetry.scripts]
+pywrk = "pywrk.manage:wrk"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+

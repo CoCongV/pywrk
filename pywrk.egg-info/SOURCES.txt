@@ -1,0 +1,11 @@
+README.rst
+setup.py
+pywrk/__init__.py
+pywrk/main.py
+pywrk/manage.py
+pywrk.egg-info/PKG-INFO
+pywrk.egg-info/SOURCES.txt
+pywrk.egg-info/dependency_links.txt
+pywrk.egg-info/entry_points.txt
+pywrk.egg-info/requires.txt
+pywrk.egg-info/top_level.txt

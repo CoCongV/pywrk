@@ -1,4 +1,3 @@
-import asyncio
 import async_timeout
 from collections import deque, defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -7,9 +6,6 @@ import typing
 
 # import httpx
 import aiohttp
-import uvloop
-
-uvloop.install()
 
 
 class CustomDeque(deque):
@@ -63,13 +59,17 @@ def count_req(data: deque):
 
 
 def run(num, url, headers, connections, timeout, duration, method):
-    # print(id(asyncio.new_event_loop()))
+    import asyncio
+    import uvloop
+
+    uvloop.install()
     return asyncio.run(
         async_run(num, url, headers, timeout, connections, duration, method))
 
 
 async def async_run(num, url, headers, timeout, connection_num, duration,
                     method):
+    import asyncio
     print(id(asyncio.get_event_loop()), num)
     queue = CustomDeque()
     client = await create_client(headers, timeout, connection_num, method)

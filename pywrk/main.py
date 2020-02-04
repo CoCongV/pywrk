@@ -4,7 +4,8 @@ from collections import deque, defaultdict
 from multiprocessing import Pool
 import typing
 
-import httpx
+# import httpx
+import aiohttp
 import uvloop
 
 uvloop.install()
@@ -69,17 +70,19 @@ def run(num, url, headers, connections, timeout, duration, method):
 
 async def async_run(num, url, headers, timeout, connection_num, duration,
                     method):
-    print(num)
+    print(id(asyncio.get_event_loop()), num)
     queue = CustomDeque()
     client = await create_client(headers, timeout, connection_num, method)
+    method_func = getattr(client, method)
     try:
         async with async_timeout.timeout(duration):
             while True:
                 await asyncio.sleep(0)
-                asyncio.create_task(request(client, url, queue))
+                asyncio.create_task(request(method_func, url, queue))
     except asyncio.TimeoutError:
         queue.close()
     finally:
+        await client.close()
         return queue
 
 
@@ -87,21 +90,28 @@ async def request(client, url: str, queue: CustomDeque):
     if queue.is_close:
         return
     try:
-        r: httpx.Response = await client(url)
-        queue.append(r.status_code)
-    except httpx.exceptions.NetworkError:
-        queue.append("timeout")
-    except httpx.exceptions.ProxyError as e:
-        queue.append(e.response.status_code)
+        async with client(url) as response:
+            queue.append(response.status)
+    except aiohttp.client_exceptions.ClientConnectionError:
+        pass
+    # try:
+    #     r: aiohttp.Response = await client(url)
+    #     queue.append(r.status_code)
+    # except httpx.exceptions.NetworkError:
+    #     queue.append("timeout")
+    # except httpx.exceptions.ProxyError as e:
+    #     queue.append(e.response.status_code)
 
 
 async def create_client(headers, timeout, connections, method):
-    pool_limits = httpx.PoolLimits(soft_limit=connections,
-                                   hard_limit=connections)
-    client = httpx.AsyncClient(headers=headers,
-                               timeout=timeout,
-                               pool_limits=pool_limits)
-    return getattr(client, method)
+    connector = aiohttp.TCPConnector(limit=connections)
+    client = aiohttp.ClientSession(connector=connector)
+    return client
+    # pool_limits = httpx.PoolLimits(soft_limit=connections,
+    #                                hard_limit=connections)
+    # client = httpx.AsyncClient(headers=headers,
+    #                            timeout=timeout,
+    #                            pool_limits=pool_limits)
 
 
 def parse_header(header_str: str) -> typing.Dict[typing.AnyStr, typing.AnyStr]:

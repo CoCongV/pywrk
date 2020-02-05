@@ -30,6 +30,8 @@ def analysis(data: deque):
 
     for i in data:
         status_result[i[0]] += 1
+        if i[0] == 'timeout':
+            continue
         num += 1
     return num, status_result
 

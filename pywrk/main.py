@@ -30,7 +30,10 @@ class Duration:
     d = h * 24
 
 
-def main(url, works, headers, timeout, duration, connections, method):
+async def main(url, works, headers, timeout, duration, connections, method):
+    import asyncio
+    loop = asyncio.get_event_loop()
+    print(loop)
     data = deque()
     result = {}
     spend = 0
@@ -39,13 +42,14 @@ def main(url, works, headers, timeout, duration, connections, method):
     duration = parse_duration(duration)
     if headers:
         headers = parse_header(headers)
+
     with ProcessPoolExecutor(max_workers=works) as exc:
         for i in range(works):
-            result[i] = exc.submit(run, i, url, headers, connection_num[i],
-                                   timeout, duration, method)
-
+            result[i] = loop.run_in_executor(exc, run, i, url, headers,
+                                             connection_num[i], timeout,
+                                             duration, method)
     for _, v in result.items():
-        cache_data, cache_spend = v.result()
+        cache_data, cache_spend = await v
         data += cache_data
         spend += cache_spend
     spend = spend / works
@@ -72,40 +76,51 @@ def count_req_sec(all_req, duration):
 def run(num, url, headers, connections, timeout, duration, method):
     import asyncio
     import uvloop
-
     uvloop.install()
-    return asyncio.run(
+
+    r = asyncio.run(
         async_run(num, url, headers, timeout, connections, duration, method))
+    return r
 
 
 async def async_run(num, url, headers, timeout, connection_num, duration,
                     method):
     import asyncio
+    print(id(asyncio.get_event_loop()), num, asyncio.get_event_loop())
     queue = CustomDeque()
     client = await create_client(headers, timeout, connection_num, method)
     method_func = getattr(client, method)
+    tasks = {}
+    task_id = 0
 
     try:
         start = timer()
         async with async_timeout.timeout(duration):
             while True:
                 await asyncio.sleep(0)
-                asyncio.create_task(request(method_func, url, queue))
+                tasks[task_id] = asyncio.create_task(
+                    request(method_func, url, queue, task_id, tasks))
+                task_id += 1
+
     except asyncio.TimeoutError:
         queue.close()
     finally:
         spend = timer() - start
         await client.close()
+        for _, v in tasks.items():
+            v.cancel()
         return queue, spend
 
 
-async def request(client, url: str, queue: CustomDeque):
+async def request(client, url: str, queue: CustomDeque, task_id: int,
+                  tasks: dict):
     start = timer()
     if queue.is_close:
         return
     try:
         async with client(url) as response:
             queue.append((response.status, timer() - start))
+            tasks.pop(task_id)
     except aiohttp.client_exceptions.ClientConnectionError:
         pass
 

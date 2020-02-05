@@ -34,7 +34,8 @@ async def main(url, works, headers, timeout, duration, connections, method):
     num, status_result = analysis(data)
     print(f"{num} requests in {spend}")
     print(f"Request/sec: {count_req_sec(num, spend)}")
-    print(status_result)
+    for k, v in status_result.items():
+        print(f"status code: {k}; send: {v} requests")
 
 
 def run(num, url, headers, connections, timeout, duration, method):

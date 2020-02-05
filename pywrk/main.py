@@ -48,6 +48,7 @@ def main(url, works, headers, timeout, duration, connections, method):
         cache_data, cache_spend = v.result()
         data += cache_data
         spend += cache_spend
+    spend = spend / works
 
     num, status_result = analysis(data)
     print(f"{num} requests in {spend}")

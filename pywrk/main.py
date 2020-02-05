@@ -33,6 +33,7 @@ class Duration:
 def main(url, works, headers, timeout, duration, connections, method):
     data = deque()
     result = {}
+    spend = 0
 
     connection_num = assign_conn(connections, works)
     duration = parse_duration(duration)
@@ -43,29 +44,24 @@ def main(url, works, headers, timeout, duration, connections, method):
             result[i] = exc.submit(run, i, url, headers, connection_num[i],
                                    timeout, duration, method)
 
-    start = timer()
     for _, v in result.items():
-        data += v.result()
-    end = timer()
-    spend = end - start
+        cache_data, cache_spend = v.result()
+        data += cache_data
+        spend += cache_spend
 
-    all_req_num = count_req(data)
-    print(f"{all_req_num} requests in {spend}")
-    print(f"Request/sec: {count_req_sec(all_req_num, spend)}")
+    num, status_result = analysis(data)
+    print(f"{num} requests in {spend}")
+    print(f"Request/sec: {count_req_sec(num, spend)}")
 
 
-def count_req_status(data: deque):
-    result = defaultdict(int)
+def analysis(data: deque):
+    num = 0
+    status_result = defaultdict(int)
+
     for i in data:
-        result[i] += 1
-    return result
-
-
-def count_req(data: deque):
-    r = 0
-    for _ in data:
-        r += 1
-    return r
+        status_result[i[0]] += 1
+        num += 1
+    return num, status_result
 
 
 def count_req_sec(all_req, duration):
@@ -89,6 +85,7 @@ async def async_run(num, url, headers, timeout, connection_num, duration,
     method_func = getattr(client, method)
 
     try:
+        start = timer()
         async with async_timeout.timeout(duration):
             while True:
                 await asyncio.sleep(0)
@@ -96,16 +93,18 @@ async def async_run(num, url, headers, timeout, connection_num, duration,
     except asyncio.TimeoutError:
         queue.close()
     finally:
+        spend = timer() - start
         await client.close()
-        return queue
+        return queue, spend
 
 
 async def request(client, url: str, queue: CustomDeque):
+    start = timer()
     if queue.is_close:
         return
     try:
         async with client(url) as response:
-            queue.append(response.status)
+            queue.append((response.status, timer() - start))
     except aiohttp.client_exceptions.ClientConnectionError:
         pass
 

@@ -96,5 +96,6 @@ tmp/
 id_rsa
 
 ./vscode
-__pycache__/
+*.pyc
 pipeline.prof
+pipeline.svg

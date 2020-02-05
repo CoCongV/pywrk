@@ -1,8 +1,12 @@
+import asyncio
+import uvloop
 import multiprocessing
 
 import click
 
 from pywrk.main import main
+
+uvloop.install()
 
 
 @click.command()
@@ -20,4 +24,4 @@ from pywrk.main import main
 def wrk(url, works, headers, timeout, duration, connections, method):
     print(f"Running {duration}; method: {method} test @ {url}")
     print(f"{works} works and {connections} connections")
-    main(url, works, headers, timeout, duration, connections, method)
+    asyncio.run(main(url, works, headers, timeout, duration, connections, method))

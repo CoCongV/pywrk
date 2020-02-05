@@ -18,4 +18,6 @@ from pywrk.main import main
 @click.option('-C', '--connections', default=multiprocessing.cpu_count())
 @click.option('-M', '--method', default='get')
 def wrk(url, works, headers, timeout, duration, connections, method):
+    print(f"Running {duration}; method: {method} test @ {url}")
+    print(f"{works} works and {connections} connections")
     main(url, works, headers, timeout, duration, connections, method)

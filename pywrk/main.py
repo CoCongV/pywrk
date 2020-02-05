@@ -1,6 +1,7 @@
 import async_timeout
 from collections import deque, defaultdict
 from concurrent.futures import ProcessPoolExecutor
+from timeit import default_timer as timer
 import typing
 
 import aiohttp
@@ -41,16 +42,34 @@ def main(url, works, headers, timeout, duration, connections, method):
         for i in range(works):
             result[i] = exc.submit(run, i, url, headers, connection_num[i],
                                    timeout, duration, method)
+
+    start = timer()
     for _, v in result.items():
         data += v.result()
-    print(count_req(data))
+    end = timer()
+    spend = end - start
+
+    all_req_num = count_req(data)
+    print(f"{all_req_num} requests in {spend}")
+    print(f"Request/sec: {count_req_sec(all_req_num, spend)}")
 
 
-def count_req(data: deque):
+def count_req_status(data: deque):
     result = defaultdict(int)
     for i in data:
         result[i] += 1
     return result
+
+
+def count_req(data: deque):
+    r = 0
+    for _ in data:
+        r += 1
+    return r
+
+
+def count_req_sec(all_req, duration):
+    return all_req / duration
 
 
 def run(num, url, headers, connections, timeout, duration, method):
@@ -65,7 +84,6 @@ def run(num, url, headers, connections, timeout, duration, method):
 async def async_run(num, url, headers, timeout, connection_num, duration,
                     method):
     import asyncio
-    print(id(asyncio.get_event_loop()), num)
     queue = CustomDeque()
     client = await create_client(headers, timeout, connection_num, method)
     method_func = getattr(client, method)

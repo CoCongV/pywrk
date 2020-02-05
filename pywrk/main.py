@@ -1,11 +1,10 @@
 import async_timeout
 from collections import deque, defaultdict
 from concurrent.futures import ProcessPoolExecutor
-from multiprocessing import Pool
 import typing
 
-# import httpx
 import aiohttp
+import orjson
 
 
 class CustomDeque(deque):
@@ -47,10 +46,6 @@ def main(url, works, headers, timeout, duration, connections, method):
     print(count_req(data))
 
 
-def test(i):
-    print(i)
-
-
 def count_req(data: deque):
     result = defaultdict(int)
     for i in data:
@@ -74,6 +69,7 @@ async def async_run(num, url, headers, timeout, connection_num, duration,
     queue = CustomDeque()
     client = await create_client(headers, timeout, connection_num, method)
     method_func = getattr(client, method)
+
     try:
         async with async_timeout.timeout(duration):
             while True:
@@ -94,24 +90,13 @@ async def request(client, url: str, queue: CustomDeque):
             queue.append(response.status)
     except aiohttp.client_exceptions.ClientConnectionError:
         pass
-    # try:
-    #     r: aiohttp.Response = await client(url)
-    #     queue.append(r.status_code)
-    # except httpx.exceptions.NetworkError:
-    #     queue.append("timeout")
-    # except httpx.exceptions.ProxyError as e:
-    #     queue.append(e.response.status_code)
 
 
 async def create_client(headers, timeout, connections, method):
     connector = aiohttp.TCPConnector(limit=connections)
-    client = aiohttp.ClientSession(connector=connector)
+    client = aiohttp.ClientSession(connector=connector,
+                                   json_serialize=orjson.dumps)
     return client
-    # pool_limits = httpx.PoolLimits(soft_limit=connections,
-    #                                hard_limit=connections)
-    # client = httpx.AsyncClient(headers=headers,
-    #                            timeout=timeout,
-    #                            pool_limits=pool_limits)
 
 
 def parse_header(header_str: str) -> typing.Dict[typing.AnyStr, typing.AnyStr]:

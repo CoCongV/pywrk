@@ -1,11 +1,10 @@
 import asyncio
+import uvloop
 import multiprocessing
 
 import click
-import uvloop
 
 from pywrk.main import main
-
 
 uvloop.install()
 

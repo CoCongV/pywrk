@@ -31,8 +31,11 @@ async def main(url, works, headers, timeout, duration, connections, method):
 
     num, status_result, avg_spend, max_spend = analysis(data)
     print(f"{num} requests in {spend}")
-    print(f"AVG: {avg_spend}s")
-    print(f"MAX: {max_spend}s")
+    print()
+    print("NOTE: Count the entire asyncio time instead of request time")
+    print(f"AVG: {avg_spend}")
+    print(f"MAX: {max_spend}")
+    print()
     print(f"Request/sec: {count_req_sec(num, spend)}")
     for k, v in status_result.items():
         print(f"status code: {k}; send: {v} requests")

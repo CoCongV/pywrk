@@ -58,10 +58,7 @@ async def aiohttp_req(client: ClientSession.get, url: URL, queue: CustomDeque,
 
 async def create_aiohttp_client(headers: dict, timeout: Union[int, None],
                                 connections: int, method: str):
-    if timeout:
-        timeout = ClientTimeout(sock_connect=timeout)
-    else:
-        timeout = sentinel
+    timeout = ClientTimeout(sock_connect=timeout) if timeout else sentinel
     connector = TCPConnector(limit=connections, ttl_dns_cache=300)
     client = ClientSession(connector=connector,
                            json_serialize=orjson.dumps,

@@ -38,8 +38,11 @@ def analysis(data: deque):
         if i[1] > max_spend:
             max_spend = i[1]
         num += 1
-    avg_spend = spend / num
-    return num, status_result, avg_spend, max_spend
+
+    avg_spend = spend / num if num else 0
+
+    return num, status_result, readable_time(avg_spend), readable_time(
+        max_spend)
 
 
 def count_req_sec(all_req, duration):
@@ -71,3 +74,10 @@ def assign_conn(connections, works):
         works_assign.append(each_conn)
     works_assign.append(connections - each_conn * (works - 1))
     return works_assign
+
+
+def readable_time(time):
+    if time >= 1:
+        return f"{time:.2f}s"
+    else:
+        return f"{(time * 1000):.2f}ms"

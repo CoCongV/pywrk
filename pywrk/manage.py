@@ -22,7 +22,7 @@ uvloop.install()
 @click.option('-C', '--connections', default=multiprocessing.cpu_count() * 100)
 @click.option('-M', '--method', default='get')
 def wrk(url, works, headers, timeout, duration, connections, method):
-    print(f"Running {duration}; method: {method} test @ {url}")
+    print(f"Running {duration} test @ {url} method: {method}")
     print(f"{works} works and {connections} connections")
     asyncio.run(
         main(url, works, headers, timeout, duration, connections, method))

@@ -18,8 +18,6 @@ async def main(url, works, headers, timeout, duration, connections, method):
     if headers:
         headers = parse_header(headers)
 
-    # await async_run(0, url, headers, timeout, connection_num[0], duration, method)
-    # return
     with ProcessPoolExecutor(max_workers=works) as exc:
         for i in range(works):
             result[i] = loop.run_in_executor(exc, run, i, url, headers,

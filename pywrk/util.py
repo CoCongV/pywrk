@@ -27,13 +27,19 @@ class Duration:
 def analysis(data: deque):
     num = 0
     status_result = defaultdict(int)
+    spend = 0
+    max_spend = 0
 
     for i in data:
         status_result[i[0]] += 1
         if i[0] == 'timeout' or i[0] == 'network_error' or i[0] == 503:
             continue
+        spend += i[1]
+        if i[1] > max_spend:
+            max_spend = i[1]
         num += 1
-    return num, status_result
+    avg_spend = spend / num
+    return num, status_result, avg_spend, max_spend
 
 
 def count_req_sec(all_req, duration):

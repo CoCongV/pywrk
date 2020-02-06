@@ -1,8 +1,10 @@
 import asyncio
 from timeit import default_timer as timer
+from typing import Union
 
 from aiohttp import ClientSession, ClientTimeout, TCPConnector
 from aiohttp.client_exceptions import ClientConnectionError
+from aiohttp.helpers import sentinel
 import async_timeout
 import orjson
 from yarl import URL
@@ -10,7 +12,8 @@ from yarl import URL
 from pywrk.util import CustomDeque
 
 
-async def async_run(num: int, url: str, headers: dict, timeout: int,
+async def async_run(num: int, url: str, headers: dict, timeout: Union[int,
+                                                                      None],
                     connection_num: int, duration: int, method: str):
     url = URL(url)
     # print(id(asyncio.get_event_loop()), num, asyncio.get_event_loop())
@@ -47,17 +50,22 @@ async def aiohttp_req(client: ClientSession.get, url: URL, queue: CustomDeque,
         return
     try:
         async with client(url) as response:
-            queue.append((response.status, timer() - start))
+            queue.append((response.status, timer() - start,))
             tasks.pop(task_id)
     except ClientConnectionError:
         pass
 
 
-async def create_aiohttp_client(headers: dict, timeout: int, connections: int,
-                                method: str):
-    timeout = ClientTimeout(total=timeout)
+async def create_aiohttp_client(headers: dict, timeout: Union[int, None],
+                                connections: int, method: str):
+    if timeout:
+        timeout = ClientTimeout(sock_connect=timeout)
+    else:
+        timeout = sentinel
     connector = TCPConnector(limit=connections, ttl_dns_cache=300)
-    client = ClientSession(connector=connector, json_serialize=orjson.dumps)
+    client = ClientSession(connector=connector,
+                           json_serialize=orjson.dumps,
+                           timeout=timeout)
     return client
 
 

@@ -17,7 +17,7 @@ uvloop.install()
               help="works number",
               type=int)
 @click.option('-H', '--headers', help="request header", type=str)
-@click.option('-T', '--timeout', help="timeout", type=int, default=2)
+@click.option('-T', '--timeout', help="timeout", type=int, default=None)
 @click.option('-D', '--duration', default="1s", type=str)
 @click.option('-C', '--connections', default=multiprocessing.cpu_count() * 100)
 @click.option('-M', '--method', default='get')

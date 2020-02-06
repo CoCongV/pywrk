@@ -29,8 +29,10 @@ async def main(url, works, headers, timeout, duration, connections, method):
         spend += cache_spend
     spend = spend / works
 
-    num, status_result = analysis(data)
+    num, status_result, avg_spend, max_spend = analysis(data)
     print(f"{num} requests in {spend}")
+    print(f"AVG: {avg_spend}s")
+    print(f"MAX: {max_spend}s")
     print(f"Request/sec: {count_req_sec(num, spend)}")
     for k, v in status_result.items():
         print(f"status code: {k}; send: {v} requests")
